@@ -9,7 +9,7 @@ name: R vanilla
 description: A blog about R and genomics
 
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
-avatar: images/R-vanilla.png
+avatar: /images/R-vanilla.png
 
 #
 # Flags below are optional
