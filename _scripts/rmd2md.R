@@ -88,3 +88,5 @@ rmd2md <- function( path_site = getwd(),
   }
   invisible()
 }
+
+rmd2md()
