@@ -1,0 +1,73 @@
+---
+layout: post
+published: false
+draft: false
+tags: R, cookbook, GenomicAlignments 
+status: process
+title: "How to slice a genome"
+author: "Charles Joly Beauparlant"
+output: html_document
+---
+
+# Introduction
+
+In this document, we will see how to slice a genome. More specifically, we will extract all the aligned regions with a coverage greater than 0. This can be useful if we want to focus with genomic regions where some reads were aligned and to discard all the empty regions.
+
+# Dataset presentation
+
+We will work with the packages [`pasillaBamSubset`](http://bioconductor.org/packages/release/data/experiment/html/pasillaBamSubset.html) that has reads only on chr4.
+
+```{r getPasillaBamFile}
+suppressMessages(library(pasillaBamSubset))
+bam_file <- untreated1_chr4()
+bam_file
+```
+
+Most of the time, for this kind of analysis, we don't want to work with the whole genome at once. It's generally best to work with only one subset of the genome at a time to reduce memory usage. An easy way to get the chromosome size is to work with the `Seqinfo` function (if the genome of interest is supported):
+
+```{r getChr4Infos}
+suppressMessages(library(GenomicAlignments))
+current_chr <- "chr4"
+dm3 <- Seqinfo(genome = "dm3")
+chr4_size <- seqlengths(dm3)[seqnames(dm3) == current_chr]
+```
+
+# Extracting the coverage
+
+The extraction of the coverage from a bam file is done in 2 steps:
+
+1. Extraction of the aligned read with the `readGAlignments` function.
+2. Conversion in coverage with the `coverage` function.
+
+Since we want to extract only the reads aligned on the chromosome 4, we need to create a `ScanBamParam` to filter accordingly with the `readGAlignments` function:
+
+```{r readGAlignments}
+which = GRanges(seqnames = current_chr, IRanges(1, chr4_size), seqinfo = dm3)
+param <- ScanBamParam(which = which)
+alignments <- readGAlignments(bam_file, param = param)
+alignments
+```
+
+It's extremely easy to convert a `GAlignments` object in a coverage (`SimpleRleList`) object:
+
+```{r getCoverage}
+coverage <- coverage(alignments)
+coverage
+```
+
+The coverage is a `SimpleRleList` with one element for each `seqlevels` in the `seqlevels`.
+
+# Slice the chromosome
+
+We can use the `slice` function to extract the regions with at least a coverage of 1. We need to specify a chromosome for this funciton to work:
+
+```{r sliceChromosome}
+views <- slice(coverage[[current_chr]], lower = 1)
+views
+```
+
+It's possible to select each element in using the `[[`:
+
+```{r selectViewElement}
+views[[2]]
+```
