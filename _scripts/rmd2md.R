@@ -16,6 +16,7 @@
 rmd2md <- function( path_site = getwd(),
                     dir_rmd = "_rmd",
                     dir_md = "_posts",                              
+                    dir_draft = "_drafts",
                     #dir_images = "figures",
                     url_images = "figures/",
                     out_ext='.md', 
@@ -38,7 +39,8 @@ rmd2md <- function( path_site = getwd(),
         status <- unlist(strsplit(content[statusLine], ':'))[2]
         status <- sub('[[:space:]]+$', '', status)
         status <- sub('^[[:space:]]+', '', status)
-        if(tolower(status) == 'process') {
+	cs <- tolower(status)
+        if(cs == 'process' | cs == "draft") {
           #This is a bit of a hack but if a line has zero length (i.e. a
           #black line), it will be removed in the resulting markdown file.
           #This will ensure that all line returns are retained.
@@ -46,9 +48,13 @@ rmd2md <- function( path_site = getwd(),
           message(paste('Processing ', f, sep=''))
           content[statusLine] <- 'status: publish'
           content[publishedLine] <- 'published: true'
-          
           #andy change to path
-          outFile <- file.path(path_site, dir_md, paste0(substr(f, 1, (nchar(f)-(nchar(in_ext)))), out_ext))
+	  if (cs == "process") {
+            outFile <- file.path(path_site, dir_md, paste0(substr(f, 1, (nchar(f)-(nchar(in_ext)))), out_ext))
+          } else {
+            content[statusLine] <- 'status: draft'
+            outFile <- file.path(path_site, dir_draft, paste0(substr(f, 1, (nchar(f)-(nchar(in_ext)))), out_ext))
+          }
                    
           #render_markdown(strict=TRUE)
           #render_markdown(strict=FALSE) #code didn't render properly on blog
