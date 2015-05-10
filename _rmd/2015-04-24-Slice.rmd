@@ -1,9 +1,9 @@
 ---
 layout: post
-published: false
+published: true
 draft: false
 tags: R, cookbook, GenomicAlignments 
-status: process
+status: published
 title: "How to slice a genome"
 author: "Charles Joly Beauparlant"
 output: html_document
