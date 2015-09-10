@@ -1,0 +1,72 @@
+---
+layout: post
+published: false
+tags: R, cookbook, GenomicAlignments, TxDb
+status: process
+title: "How to extract promoters positions"
+author: "Charles Joly Beauparlant"
+output: html_document
+---
+
+# Introduction
+
+In this post, I will show how easy it is to extract the genomic positions of every promoters of a specific genome build.
+
+For this demo, you will need the `TxDb.Hsapiens.UCSC.hg19.knownGene` package:
+```{r library, message=FALSE}
+require(TxDb.Hsapiens.UCSC.hg19.knownGene)
+# To avoid have to type the whole package name every time, we use the variable name txdb
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+```
+
+# TL;DR
+
+```{r tldr}
+promoters(genes(txdb), upstream = 1500, downstream = 500)
+```
+
+# `TxDb`
+
+The trick is to use a type of packages that are known as [`TxDb`](http://bioconductor.org/packages/release/BiocViews.html#___TxDb). `TxDb` stands for Transcripts Database, and as the name implies, it contains information about the transcripts for a specific genome build of a given specie.
+
+If you are lucky, a `TxDb` package is already available on Bioconductor and extracting the promoter information will be very straighforward. Otherwise, it is possible to create your own `TxDb` object, but this is beyond the scope of the current post.
+
+The goal of this document is not to describe in details the inner workings of `TxDb` objects. We will only show two helper functions that allow to easily extract relevant information from this type of object.
+
+```{r presentTxDb}
+txdb
+```
+
+# `promoters` and `genes`
+
+The `promoters` function can be used to extract the information for the promoters of every transcripts from a `TxDb` object:
+
+```{r introducePromoters}
+promoters_txdb <- promoters(txdb)
+promoters_txdb
+```
+
+The promoters function returns a `GRanges` object corresponding to the positions of the promoters of every transcripts in the `Txdb` object.
+
+This returns `r length(promoters_txdb)` promoter regions. But often we are only interested in the promoters of the genes and not of all the transcripts. This is where the `genes` function becomes handy:
+
+```{r showGenes}
+genes_txdb <- genes(txdb)
+promoters_txdb <- promoters(genes_txdb)
+promoters_txdb
+```
+
+Both function can also be nested to avoid the intermediate `genes_txdb` object:
+
+```{r nest}
+promoters_txdb <- promoters(genes(txdb))
+promoters_txdb
+```
+
+By default, the `promoters` function will fetch the 2000 nucleotides before the transcription start site (TSS) and the 200 nucleotides after the TSS. This can be controled with the `upstream` and `downstream` parameters:
+
+```{r upstreamDownstream, collapse = TRUE}
+unique(width(promoters_txdb))
+promoters_txdb <- promoters(genes(txdb), upstream = 1500, downstream = 500)
+unique(width(promoters_txdb))
+```
